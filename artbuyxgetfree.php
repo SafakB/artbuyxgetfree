@@ -182,7 +182,7 @@ class artbuyxgetfree extends Module
             2 => 'Buy 4 Pay 3 Campaign',
         );
         // $cartRule->id_customer = $cart->id_customer;
-        $cartRule->code = 'BUYXGETONEFREE' . rand(1000, 9999);
+        $cartRule->code = 'BUYXGETONEFREE' . rand(10000, 99999);
         $cartRule->value = $discountAmount;
         $cartRule->reduction_amount = $discountAmount;
         $cartRule->active = 1;
@@ -200,6 +200,10 @@ class artbuyxgetfree extends Module
     {
         //die('hookHeader');
         $this->applyDiscount();
+         if (Tools::isSubmit('ajax') && !Tools::isSubmit('cancel')) {
+            usleep(1000); 
+            $this->applyDiscount();
+         }
     }
 
     public function hookDisplayShoppingCart($params)
