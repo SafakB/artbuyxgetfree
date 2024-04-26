@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<module>
+    <name>artbuyxgetfree</name>
+    <displayName><![CDATA[Art Buy X Get Free]]></displayName>
+    <version><![CDATA[0.0.1]]></version>
+    <description><![CDATA[Provides a discount on the cheapest item in the cart when minimum unique item and quantity requirements are met.]]></description>
+    <author><![CDATA[Artonomi]]></author>
+    <tab><![CDATA[pricing_promotion]]></tab>
+	<confirmUninstall><![CDATA[Are you sure you want to uninstall?]]></confirmUninstall>
+    <is_configurable>1</is_configurable>
+    <need_instance>0</need_instance>
+	<limited_countries></limited_countries>
+</module>
