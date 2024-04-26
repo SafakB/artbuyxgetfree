@@ -30,8 +30,8 @@ class artbuyxgetfree extends Module
             $this->registerHook('actionCartUpdate') &&
             $this->registerHook('displayShoppingCart') &&
             $this->registerHook('header') &&
-            Configuration::updateValue('ART_BUY_X', 4) && // Örnek değer
-            Configuration::updateValue('ART_DISCOUNT_ACTIVE', false); // Örnek değer
+            Configuration::updateValue('ART_BUY_X', 4) &&
+            Configuration::updateValue('ART_DISCOUNT_ACTIVE', false); 
     }
 
     public function uninstall()
@@ -53,16 +53,6 @@ class artbuyxgetfree extends Module
 
             $this->context->smarty->assign('confirmation', $this->l('Settings updated'));
         }
-
-        // $token = Tools::getAdminTokenLite('AdminModules');
-        // $this->context->smarty->assign([
-        //     'token' => $token,
-        //     'buy_x' => Configuration::get('ART_BUY_X'),
-        //     'discount_active' => Configuration::get('ART_DISCOUNT_ACTIVE')
-        // ]);
-        // // die('asdasd');
-
-        // return $this->display(__FILE__, 'views/templates/admin/configure.tpl');
 
         $form = [
             'form' => [
@@ -120,19 +110,20 @@ class artbuyxgetfree extends Module
         return $helper->generateForm([$form]);
     }
 
-    public function hookHeader()
-    {
+
+    public function applyDiscount(){
         if (!Configuration::get('ART_DISCOUNT_ACTIVE')) {
-            return;  // Eğer indirim modülü pasifse işlem yapma
+            return; 
         }
 
         $cart = $this->context->cart;
 
-        $cartRules = $cart->getCartRules();
-        foreach ($cartRules as $cartRule) {
-            $cartRule = new CartRule($cartRule['id_cart_rule']);
-            $cartRule->delete();
-        }
+         // Remove old rules on cart
+         $cartRules = $cart->getCartRules();
+         foreach ($cartRules as $cartRule) {
+             $cartRule = new CartRule($cartRule['id_cart_rule']);
+             $cartRule->delete();
+         }
 
         $products = $cart->getProducts(true);
 
@@ -141,7 +132,7 @@ class artbuyxgetfree extends Module
         $totalCount = 0;
 
         foreach ($products as $product) {
-            if ($product['price_wt'] > 0 && $product['quantity'] > 0) {  // Ürün fiyatı 0'dan büyük ve mevcutsa
+            if ($product['price_wt'] > 0 && $product['quantity'] > 0) { 
                 $eligibleProducts[] = $product;
                 $totalCount += $product['quantity'];
             }
@@ -149,17 +140,25 @@ class artbuyxgetfree extends Module
 
 
         if ($totalCount < Configuration::get('ART_BUY_X')) {
-            // echo 'uygun ürün sayısı yeterli değil';
-            return;  // Eğer uygun ürün sayısı yeterli değilse indirim yapma
+            return;
         }
         $cheapestProduct = $this->findLowestPriceRow($eligibleProducts);
 
 
         $discountAmount = round($cheapestProduct['price_wt'], 2);
+
+       
+
+        
+
+        // Add new rule
         $cart->addCartRule($this->createDiscount($discountAmount));
 
         // add css
         $this->context->controller->addCSS($this->_path . 'views/css/style.css');
+
+        
+        
     }
 
     function findLowestPriceRow($array)
@@ -172,49 +171,6 @@ class artbuyxgetfree extends Module
             }
         }
         return $minRow;
-    }
-
-    public function hookDisplayShoppingCart($params)
-    {
-        //die('hookDisplayShoppingCart');
-    }
-
-    public function hookActionCartUpdate($params)
-    {
-        die('hookActionCartUpdate');
-    }
-
-    public function hookActionCartSummary($params)
-    {
-        die('asdasd');
-        if (!Configuration::get('ART_DISCOUNT_ACTIVE')) {
-            return;  // Eğer indirim modülü pasifse işlem yapma
-        }
-
-        $cart = $params['cart'];
-        $products = $cart->getProducts(true);
-        $eligibleProducts = [];
-
-        foreach ($products as $product) {
-            if ($product['price_wt'] > 0 && $product['quantity'] > 0) {  // Ürün fiyatı 0'dan büyük ve mevcutsa
-                $eligibleProducts[] = $product;
-            }
-        }
-
-        if (count($eligibleProducts) < Configuration::get('ART_BUY_X')) {
-            return;  // Eğer uygun ürün sayısı yeterli değilse indirim yapma
-        }
-
-        // Sepetteki en ucuz ürünü bul
-        $cheapestProduct = min($eligibleProducts, function ($a, $b) {
-            return $a['price_wt'] <=> $b['price_wt'];
-        });
-
-        // Sepet toplamından indirim yap
-        $discountAmount = $cheapestProduct['price_wt'];
-        $cart->addCartRule($this->createDiscount($discountAmount));
-
-        return 'Discount applied to the cheapest product';
     }
 
     private function createDiscount($discountAmount)
@@ -237,5 +193,27 @@ class artbuyxgetfree extends Module
         $cartRule->add();
 
         return $cartRule->id;
+    }
+
+
+    public function hookHeader()
+    {
+        //die('hookHeader');
+        $this->applyDiscount();
+    }
+
+    public function hookDisplayShoppingCart($params)
+    {
+        //die('hookDisplayShoppingCart');
+    }
+
+    public function hookActionCartUpdate($params)
+    {
+        //die('hookActionCartUpdate');
+    }
+
+    public function hookActionCartSummary($params)
+    {
+        //die('hookActionCartSummary');
     }
 }
